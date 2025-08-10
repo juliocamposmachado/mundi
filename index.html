@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mundo Virtual Imersivo 3D</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            max-width: 300px;
+        }
+
+        #controls-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .control-group button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .control-group button:hover {
+            background: #45a049;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+        }
+
+        #mesh-inspector {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            max-width: 350px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            z-index: 200;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #vr-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #vr-button:hover {
+            background: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        Carregando Mundo Virtual...
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-overlay">
+        <h3>Mundo Virtual 3D</h3>
+        <p><strong>Controles:</strong></p>
+        <ul>
+            <li>WASD - Mover câmera</li>
+            <li>Mouse - Olhar ao redor</li>
+            <li>Shift - Correr</li>
+            <li>Espaço - Subir</li>
+            <li>C - Descer</li>
+            <li>Click - Interagir</li>
+        </ul>
+        <p id="position-info">Posição: (0, 0, 0)</p>
+        <p id="fps-counter">FPS: 0</p>
+    </div>
+
+    <div id="controls-panel">
+        <div class="control-group">
+            <label>Tempo do Dia</label>
+            <input type="range" id="time-slider" min="0" max="24" step="0.1" value="12">
+            <span id="time-display">12:00</span>
+        </div>
+
+        <div class="control-group">
+            <label>Adicionar Objetos</label>
+            <button onclick="worldManager.addRandomTree()">Árvore</button>
+            <button onclick="worldManager.addRock()">Rocha</button>
+            <button onclick="worldManager.addBuilding()">Casa</button>
+            <button onclick="worldManager.addNPC()">NPC</button>
+        </div>
+
+        <div class="control-group">
+            <label>Visualização</label>
+            <button onclick="worldManager.toggleWireframe()">Wireframe</button>
+            <button onclick="worldManager.toggleMeshInspector()">Mesh Info</button>
+        </div>
+
+        <div class="control-group">
+            <label>Câmera</label>
+            <button onclick="cameraController.toggleMode()">Alternar Pessoa</button>
+        </div>
+    </div>
+
+    <div id="mesh-inspector" class="hidden">
+        <h4>Inspetor de Mesh</h4>
+        <div id="mesh-info"></div>
+    </div>
+
+    <button id="vr-button">Entrar VR</button>
+
+    <!-- Three.js e dependências -->
+    <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+    <script>
+        // Verificar se THREE carregou
+        if (typeof THREE === 'undefined') {
+            document.getElementById('loading-screen').innerHTML = `
+                <div style="color: #ff6b6b; text-align: center;">
+                    <h2>Erro ao carregar Three.js</h2>
+                    <p>Verifique sua conexão com a internet</p>
+                    <p>Ou execute em um servidor web local</p>
+                    <button onclick="location.reload()">Tentar Novamente</button>
+                </div>
+            `;
+        }
+    </script>
+    
+    <!-- Scripts do projeto -->
+    <script src="js/terrain.js"></script>
+    <script src="js/skybox.js"></script>
+    <script src="js/camera-controller.js"></script>
+    <script src="js/world-manager.js"></script>
+    <script src="js/mesh-inspector.js"></script>
+    <script src="js/performance-optimizer.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

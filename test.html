@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Three.js</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #test-container {
+            width: 400px;
+            height: 300px;
+            border: 2px solid white;
+        }
+        #status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background: #4CAF50; }
+        .error { background: #F44336; }
+        .loading { background: #FF9800; }
+    </style>
+</head>
+<body>
+    <h1>Teste de Carregamento - Mundo Virtual 3D</h1>
+    
+    <div id="status" class="loading">Testando carregamento do Three.js...</div>
+    
+    <div id="test-container"></div>
+    
+    <div id="info">
+        <h3>Informações do Sistema:</h3>
+        <p id="browser-info"></p>
+        <p id="webgl-info"></p>
+    </div>
+
+    <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+    <script>
+        const status = document.getElementById('status');
+        const container = document.getElementById('test-container');
+        const browserInfo = document.getElementById('browser-info');
+        const webglInfo = document.getElementById('webgl-info');
+        
+        // Informações do navegador
+        browserInfo.textContent = `Navegador: ${navigator.userAgent}`;
+        
+        // Verificar WebGL
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        
+        if (gl) {
+            webglInfo.textContent = `WebGL: Suportado - ${gl.getParameter(gl.VERSION)}`;
+            webglInfo.style.color = '#4CAF50';
+        } else {
+            webglInfo.textContent = 'WebGL: NÃO SUPORTADO';
+            webglInfo.style.color = '#F44336';
+        }
+        
+        // Teste do Three.js
+        setTimeout(() => {
+            if (typeof THREE !== 'undefined') {
+                status.textContent = 'Three.js carregado com sucesso!';
+                status.className = 'success';
+                
+                try {
+                    // Criar cena de teste
+                    const scene = new THREE.Scene();
+                    const camera = new THREE.PerspectiveCamera(75, 400/300, 0.1, 1000);
+                    const renderer = new THREE.WebGLRenderer();
+                    
+                    renderer.setSize(400, 300);
+                    renderer.setClearColor(0x000033);
+                    container.appendChild(renderer.domElement);
+                    
+                    // Adicionar cubo
+                    const geometry = new THREE.BoxGeometry();
+                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                    const cube = new THREE.Mesh(geometry, material);
+                    scene.add(cube);
+                    
+                    camera.position.z = 5;
+                    
+                    // Animar
+                    function animate() {
+                        requestAnimationFrame(animate);
+                        cube.rotation.x += 0.01;
+                        cube.rotation.y += 0.01;
+                        renderer.render(scene, camera);
+                    }
+                    
+                    animate();
+                    
+                    status.textContent += ' Cena de teste renderizando!';
+                    
+                } catch (error) {
+                    status.textContent = `Erro ao criar cena: ${error.message}`;
+                    status.className = 'error';
+                }
+                
+            } else {
+                status.textContent = 'ERRO: Three.js não carregou. Verifique sua conexão com internet.';
+                status.className = 'error';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
